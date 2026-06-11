@@ -56,7 +56,7 @@ function Principal() {
   const toggleMutation = useMutation({
     mutationFn: async ({ task, solucao }: { task: Task; solucao?: string }) => {
       const newStatus = task.status === "pendente" ? "concluida" : "pendente";
-      const update: Record<string, unknown> = {
+      const update: Database["public"]["Tables"]["tasks"]["Update"] = {
         status: newStatus,
         concluida_em: newStatus === "concluida" ? new Date().toISOString() : null,
       };
