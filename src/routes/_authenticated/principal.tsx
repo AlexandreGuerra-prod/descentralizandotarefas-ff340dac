@@ -10,6 +10,7 @@ import { Plus, Search, Download, Upload, ChevronDown, ChevronRight } from "lucid
 import { TaskCard } from "@/components/TaskCard";
 import { addToDateISO, sortTasks, todayISO, type Task } from "@/lib/task-utils";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/_authenticated/principal")({
   head: () => ({ meta: [{ title: "Hoje | Planejador" }] }),
@@ -113,30 +114,64 @@ function Principal() {
     toast.success("Backup gerado");
   }
 
+  async function handleExportXlsx() {
+    const { data, error } = await supabase.from("tasks").select("*").order("data", { ascending: false });
+    if (error) { toast.error("Erro ao exportar", { description: error.message }); return; }
+    const rows = (data ?? []).map((t) => ({
+      Título: t.titulo,
+      Descrição: t.descricao ?? "",
+      Data: t.data,
+      Prazo: t.prazo ?? "",
+      Tipo: t.tipo,
+      Prioridade: t.prioridade,
+      Status: t.status,
+      Recorrência: t.recorrencia,
+      Origem: t.origem ?? "",
+      NUP: t.nup ?? "",
+      Responsável: t.responsavel ?? "",
+      Solução: t.solucao ?? "",
+      "Concluída em": t.concluida_em ?? "",
+      "Criada em": t.created_at,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Tarefas");
+    XLSX.writeFile(wb, `planejador-tarefas-${todayISO()}.xlsx`);
+    toast.success("Planilha gerada");
+  }
+
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
-      const arr = JSON.parse(text);
+      const parsed = JSON.parse(text);
+      const arr = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.tasks) ? parsed.tasks : null;
       if (!Array.isArray(arr)) throw new Error("Arquivo inválido");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const rows = arr.map((t) => ({
-        user_id: user.id,
-        titulo: t.titulo,
-        descricao: t.descricao,
-        data: t.data,
-        prazo: t.prazo,
-        tipo: t.tipo,
-        origem: t.origem,
-        nup: t.nup,
-        responsavel: t.responsavel,
-        prioridade: t.prioridade,
-        recorrencia: t.recorrencia,
-        status: t.status,
-        solucao: t.solucao,
-      }));
+      const validTipo = new Set(["pessoal", "profissional"]);
+      const validPrio = new Set(["altissima", "alta", "media", "baixa", "irrelevante"]);
+      const validRec = new Set(["nenhuma", "diaria", "semanal", "mensal", "anual"]);
+      const validStatus = new Set(["pendente", "concluida"]);
+      const rows = arr
+        .filter((t) => t && typeof t.titulo === "string" && t.titulo.trim().length > 0)
+        .map((t) => ({
+          user_id: user.id,
+          titulo: String(t.titulo).slice(0, 500),
+          descricao: t.descricao ?? null,
+          data: t.data && /^\d{4}-\d{2}-\d{2}/.test(String(t.data)) ? String(t.data).slice(0, 10) : todayISO(),
+          prazo: t.prazo || null,
+          tipo: validTipo.has(t.tipo) ? t.tipo : "pessoal",
+          origem: t.origem ?? null,
+          nup: t.nup ?? null,
+          responsavel: t.responsavel ?? null,
+          prioridade: validPrio.has(t.prioridade) ? t.prioridade : "media",
+          recorrencia: validRec.has(t.recorrencia) ? t.recorrencia : "nenhuma",
+          status: validStatus.has(t.status) ? t.status : "pendente",
+          solucao: t.solucao ?? null,
+        }));
+      if (rows.length === 0) throw new Error("Nenhuma tarefa válida encontrada no arquivo");
       const { error } = await supabase.from("tasks").insert(rows);
       if (error) throw error;
       toast.success(`${rows.length} tarefas importadas`);
@@ -158,7 +193,8 @@ function Principal() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={handleBackup}><Download className="h-4 w-4 mr-1" />Backup</Button>
+          <Button variant="outline" size="sm" onClick={handleBackup}><Download className="h-4 w-4 mr-1" />Backup JSON</Button>
+          <Button variant="outline" size="sm" onClick={handleExportXlsx}><Download className="h-4 w-4 mr-1" />Planilha</Button>
           <label>
             <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
             <Button variant="outline" size="sm" asChild><span><Upload className="h-4 w-4 mr-1" />Importar</span></Button>
