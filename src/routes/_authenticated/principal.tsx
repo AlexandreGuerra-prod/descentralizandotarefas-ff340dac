@@ -10,7 +10,6 @@ import { Plus, Search, Download, Upload, ChevronDown, ChevronRight } from "lucid
 import { TaskCard } from "@/components/TaskCard";
 import { addToDateISO, sortTasks, todayISO, type Task } from "@/lib/task-utils";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/_authenticated/principal")({
   head: () => ({ meta: [{ title: "Hoje | Planejador" }] }),
@@ -115,6 +114,7 @@ function Principal() {
   }
 
   async function handleExportXlsx() {
+    const XLSX = await import("xlsx");
     const { data, error } = await supabase.from("tasks").select("*").order("data", { ascending: false });
     if (error) { toast.error("Erro ao exportar", { description: error.message }); return; }
     const rows = (data ?? []).map((t) => ({
