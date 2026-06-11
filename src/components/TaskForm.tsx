@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Paperclip, Clipboard, ExternalLink } from "lucide-react";
 import { PRIORITY_LABEL, RECURRENCE_LABEL, todayISO, type Shortcut, type Task } from "@/lib/task-utils";
 import { toast } from "sonner";
+import { MicButton } from "@/components/MicButton";
 
 const MAX_FILE = 10 * 1024 * 1024;
 
@@ -165,11 +166,17 @@ export function TaskForm({ taskId }: { taskId?: string }) {
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <Label htmlFor="titulo">Título *</Label>
-          <Input id="titulo" required value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+          <div className="flex gap-2">
+            <Input id="titulo" required value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+            <MicButton onResult={(t) => setTitulo((prev) => (prev ? prev + " " : "") + t)} />
+          </div>
         </div>
         <div>
           <Label htmlFor="descricao">Descrição</Label>
-          <Textarea id="descricao" rows={3} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Cole texto ou imagem aqui (Ctrl+V)" />
+          <div className="flex gap-2 items-start">
+            <Textarea id="descricao" rows={3} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Cole texto ou imagem aqui (Ctrl+V) ou use o microfone" />
+            <MicButton onResult={(t) => setDescricao((prev) => (prev ? prev + " " : "") + t)} />
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
