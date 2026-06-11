@@ -166,3 +166,22 @@
   50%, 100% { color: oklch(0.85 0.2 60); transform: scale(1.15); filter: drop-shadow(0 0 10px oklch(0.85 0.2 60 / 0.9)); }
 }
 .siren-blink { animation: siren-blink 0.6s steps(1, end) infinite; }
+
+/* FullCalendar theme integration */
+.fc-wrapper { --fc-border-color: hsl(var(--border) / 0.5); --fc-page-bg-color: transparent; --fc-neutral-bg-color: hsl(var(--muted)); --fc-today-bg-color: color-mix(in oklab, var(--primary) 8%, transparent); --fc-event-bg-color: var(--primary); --fc-event-border-color: var(--primary); --fc-event-text-color: var(--primary-foreground); --fc-now-indicator-color: hsl(0 85% 55%); }
+.fc-wrapper .fc { font-family: inherit; }
+.fc-wrapper .fc .fc-button { background: var(--secondary); color: var(--secondary-foreground); border: 1px solid var(--border); text-transform: capitalize; padding: 0.35rem 0.75rem; font-size: 0.85rem; box-shadow: none; }
+.fc-wrapper .fc .fc-button:hover { background: var(--accent); }
+.fc-wrapper .fc .fc-button-primary:not(:disabled).fc-button-active, .fc-wrapper .fc .fc-button-primary:not(:disabled):active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+.fc-wrapper .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 700; text-transform: capitalize; }
+.fc-wrapper .fc-col-header-cell, .fc-wrapper .fc-list-day-cushion { background: color-mix(in oklab, var(--muted) 50%, transparent) !important; }
+.fc-wrapper .fc-daygrid-day-number, .fc-wrapper .fc-col-header-cell-cushion, .fc-wrapper .fc-list-event-title, .fc-wrapper .fc-list-event-time { color: var(--foreground); }
+.fc-wrapper .fc-day-today { background: color-mix(in oklab, var(--primary) 10%, transparent) !important; }
+.fc-wrapper .fc-event { border-radius: 4px; padding: 1px 4px; font-size: 0.75rem; cursor: pointer; }
+.fc-wrapper .fc-list-event:hover td { background: var(--accent) !important; }
+@media (max-width: 640px) {
+  .fc-wrapper .fc-toolbar { flex-direction: column; gap: 0.5rem; align-items: stretch; }
+  .fc-wrapper .fc-toolbar-chunk { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.25rem; }
+  .fc-wrapper .fc-toolbar-title { text-align: center; font-size: 1rem !important; }
+  .fc-wrapper .fc-button { padding: 0.3rem 0.55rem; font-size: 0.75rem; }
+}
