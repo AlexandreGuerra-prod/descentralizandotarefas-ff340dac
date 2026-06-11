@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Plus, Search, Download, Upload, ChevronDown, ChevronRight } from "lucide-react";
 import { TaskCard } from "@/components/TaskCard";
 import { addToDateISO, sortTasks, todayISO, type Task } from "@/lib/task-utils";
+import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/principal")({
