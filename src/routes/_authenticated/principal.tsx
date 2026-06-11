@@ -21,21 +21,22 @@ function Principal() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [showNext7, setShowNext7] = useState(false);
+  const [showDone, setShowDone] = useState(false);
 
+  const today = todayISO();
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["tasks", "active"],
+    queryKey: ["tasks", "active", today],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .eq("status", "pendente")
+        .or(`status.eq.pendente,and(status.eq.concluida,concluida_em.gte.${today}T00:00:00)`)
         .order("data", { ascending: true });
       if (error) throw error;
       return data as Task[];
     },
   });
 
-  const today = todayISO();
   const next7 = new Date();
   next7.setDate(next7.getDate() + 7);
   const next7ISO = next7.toISOString().slice(0, 10);
@@ -51,8 +52,9 @@ function Principal() {
     );
   }, [tasks, search]);
 
-  const todayTasks = sortTasks(filtered.filter((t) => t.data <= today));
-  const upcoming = sortTasks(filtered.filter((t) => t.data > today && t.data <= next7ISO));
+  const todayTasks = sortTasks(filtered.filter((t) => t.status === "pendente" && t.data <= today));
+  const upcoming = sortTasks(filtered.filter((t) => t.status === "pendente" && t.data > today && t.data <= next7ISO));
+  const doneToday = sortTasks(filtered.filter((t) => t.status === "concluida"));
 
   const toggleMutation = useMutation({
     mutationFn: async ({ task, solucao }: { task: Task; solucao?: string }) => {
