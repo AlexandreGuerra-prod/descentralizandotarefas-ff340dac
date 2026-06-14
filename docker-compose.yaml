@@ -1,0 +1,8 @@
+services:
+  planejador:
+    build: .
+    container_name: planejador
+    restart: unless-stopped
+    ports:
+      - "3010:3000"
+    env_file: .env.production
