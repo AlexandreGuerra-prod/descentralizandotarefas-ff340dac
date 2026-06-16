@@ -52,6 +52,23 @@ function AuthPage() {
     }
   }
 
+  async function handleApple() {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error("Falha no login Apple", { description: String(result.error?.message ?? result.error) });
+        return;
+      }
+      if (result.redirected) return;
+      navigate({ to: "/principal", replace: true });
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
